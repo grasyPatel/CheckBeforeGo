@@ -17,4 +17,6 @@ const doctorSchema = new mongoose.Schema({
   profileImage: { type: String, default: "" }, // store image URL or base64 string
 }, { timestamps: true });
 
-export const Doctor = mongoose.model("Doctor", doctorSchema);
+const Doctor = mongoose.model("Doctor", doctorSchema);
+
+export default Doctor;

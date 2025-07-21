@@ -2,19 +2,31 @@ import express from "express";
 import cors from "cors";;
 import {connectDB} from "./lib/db.js"
 import dotenv from "dotenv";
+import userRoutes from "./routes/userRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 dotenv.config();
 
-const app = express();;
+const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 connectDB();
 
 
+
+
+
+
 app.use("/api/doctors", doctorRoutes);
+app.use("/api/users", userRoutes);
+
+
 
 
 app.listen(PORT, () => {
