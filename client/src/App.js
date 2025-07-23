@@ -9,7 +9,9 @@ import UserRegister from "./pages/UserRegister";
 import DoctorRegister from "./pages/DoctorRegister";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import UserDashboard from "./pages/UserDashboard";
-
+import Footer from "./components/Footer";
+import DoctorDetails from "./pages/DoctorDetails";
+import BookAppointmentPage from "./pages/BookAppointmentPage";
 const App = () => {
   return (
    <ThemeProvider>
@@ -26,9 +28,13 @@ const App = () => {
             <Route path="/register/doctor" element={<DoctorRegister />} /> {/* <-- Add this line */}
             <Route path="/doctor/dashboard" element={<DoctorDashboard/>} />
             <Route path="/user/dashboard" element={<UserDashboard/>} />
+            <Route path="/doctors/:id" element={<DoctorDetails />} />
+            <Route path="/book-appointment/:doctorId" element={<BookAppointmentPage />} />
+
 
           </Routes>
         </div>
+        <Footer />
       </Router>
     </ThemeProvider>
   )

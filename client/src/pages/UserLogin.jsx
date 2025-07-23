@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link , useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
@@ -12,6 +12,9 @@ const UserLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { setUser } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
+
+const redirect = new URLSearchParams(location.search).get("redirect") || "/user/dashboard";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +28,8 @@ const UserLogin = () => {
       setUser(res.data.user || res.data.doctor); // Update context
 
 
-      navigate("/user/dashboard");
+     navigate(redirect);
+
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     } finally {

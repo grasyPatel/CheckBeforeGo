@@ -52,7 +52,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <a href="/" className={`text-xl font-bold ${
+            <a href="/" className={`text-xl font-bold no-underline ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
               CheckBeforeGo

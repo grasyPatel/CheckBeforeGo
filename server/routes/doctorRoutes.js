@@ -1,6 +1,6 @@
 import express from "express";
 import { protectDoctor } from "../middleware/authMiddleware.js";
-import { registerDoctor, loginDoctor, getDoctorProfile, updateDoctorProfile , searchDoctors, toggleAvailability} from "../controllers/doctorAuthController.js";
+import { registerDoctor, loginDoctor, getDoctorProfile, updateDoctorProfile , searchDoctors, toggleAvailability, getDoctorById} from "../controllers/doctorAuthController.js";
 import upload from "../middleware/uploads.js"; 
 
 const router = express.Router();
@@ -13,6 +13,6 @@ router.put("/profile", protectDoctor,  upload.single("profileImage"), updateDoct
 router.put('/availability', protectDoctor, toggleAvailability); // ✅ Availability route
 
 router.get('/search', searchDoctors);
-
+router.get('/:id', getDoctorById); 
 export default router;
 

@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock, Stethoscope, Building, MapPin, Clock, ExternalLink, Camera } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+
+// API Configuration
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
 const DoctorRegister = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,6 +24,7 @@ const DoctorRegister = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const specialties = [
     "General Medicine",
@@ -46,6 +53,10 @@ const DoctorRegister = () => {
         ...prev,
         [name]: ""
       }));
+    }
+    // Clear API error when user starts typing
+    if (apiError) {
+      setApiError("");
     }
   };
 
@@ -84,12 +95,88 @@ const DoctorRegister = () => {
     }
 
     setLoading(true);
+    setApiError("");
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      alert("Registration successful! Please login to continue.");
+      // Prepare data for API (excluding confirmPassword)
+      const registrationData = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        specialty: formData.specialty,
+        hospitalName: formData.hospitalName.trim(),
+        location: formData.location.trim(),
+        timings: formData.timings.trim(),
+        mapLocation: formData.mapLocation.trim() || undefined,
+        profileImage: formData.profileImage.trim() || undefined,
+        availability: false // Default to false
+      };
+
+      // Remove undefined fields
+      Object.keys(registrationData).forEach(key => {
+        if (registrationData[key] === undefined) {
+          delete registrationData[key];
+        }
+      });
+
+      // Make API call to register doctor
+      const response = await axios.post(
+        `${API_BASE_URL}/api/doctors/register`, 
+        registrationData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10 second timeout
+        }
+      );
+
+      // Handle successful registration
+      if (response.data) {
+        // Show success message
+        alert("Registration successful! Please login to continue.");
+        
+        // Redirect to login page after successful registration
+        navigate("/login/doctor");
+      }
+
     } catch (err) {
-      alert("Registration failed");
+      console.error("Registration error:", err);
+      
+      // Handle different types of errors
+      if (err.response) {
+        // Server responded with error status
+        const status = err.response.status;
+        const message = err.response.data?.message || err.response.data?.error;
+        
+        switch (status) {
+          case 400:
+            setApiError(message || "Invalid registration data. Please check your information.");
+            break;
+          case 409:
+            setApiError("An account with this email already exists. Please use a different email or login.");
+            setErrors({ email: "Email already exists" });
+            break;
+          case 422:
+            setApiError("Please check your information and try again.");
+            // Handle field-specific errors if provided by API
+            if (err.response.data?.errors) {
+              setErrors(err.response.data.errors);
+            }
+            break;
+          case 500:
+            setApiError("Server error. Please try again later.");
+            break;
+          default:
+            setApiError(message || "Registration failed. Please try again.");
+        }
+      } else if (err.request) {
+        // Network error
+        setApiError("Network error. Please check your internet connection and try again.");
+      } else {
+        // Other error
+        setApiError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -108,7 +195,17 @@ const DoctorRegister = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-green-100 p-8 lg:p-12 backdrop-blur-sm">
+        <form onSubmit={handleRegister} className="bg-white rounded-3xl shadow-2xl border border-green-100 p-8 lg:p-12 backdrop-blur-sm">
+          {/* API Error Display */}
+          {apiError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <p className="text-red-700 font-medium">{apiError}</p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-8">
             
             {/* Personal Information Section */}
@@ -135,6 +232,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.name}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   {errors.name && <p className="text-red-500 text-sm flex items-center gap-1">
@@ -157,6 +255,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.email}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   {errors.email && <p className="text-red-500 text-sm flex items-center gap-1">
@@ -179,11 +278,13 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.password}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      disabled={loading}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -208,11 +309,13 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      disabled={loading}
                     >
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -247,6 +350,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.specialty}
                       onChange={handleInputChange}
+                      disabled={loading}
                     >
                       <option value="">Choose your specialty</option>
                       {specialties.map((specialty) => (
@@ -276,6 +380,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.hospitalName}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   {errors.hospitalName && <p className="text-red-500 text-sm flex items-center gap-1">
@@ -298,6 +403,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.location}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   {errors.location && <p className="text-red-500 text-sm flex items-center gap-1">
@@ -320,6 +426,7 @@ const DoctorRegister = () => {
                       }`}
                       value={formData.timings}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   {errors.timings && <p className="text-red-500 text-sm flex items-center gap-1">
@@ -353,6 +460,7 @@ const DoctorRegister = () => {
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 focus:bg-white transition-all duration-200"
                       value={formData.mapLocation}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   <p className="text-xs text-gray-500">Help patients find your exact location</p>
@@ -370,6 +478,7 @@ const DoctorRegister = () => {
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 bg-gray-50 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 focus:bg-white transition-all duration-200"
                       value={formData.profileImage}
                       onChange={handleInputChange}
+                      disabled={loading}
                     />
                   </div>
                   <p className="text-xs text-gray-500">Add a professional photo to build trust with patients</p>
@@ -380,8 +489,7 @@ const DoctorRegister = () => {
             {/* Submit Button */}
             <div className="border-t border-gray-100 pt-8">
               <button
-                type="button"
-                onClick={handleRegister}
+                type="submit"
                 disabled={loading}
                 className="w-full bg-gradient-to-r from-emerald-600 to-green-600 text-white py-4 px-8 rounded-xl font-semibold text-lg hover:from-emerald-700 hover:to-green-700 focus:outline-none focus:ring-4 focus:ring-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-xl hover:shadow-2xl"
               >
@@ -401,16 +509,16 @@ const DoctorRegister = () => {
           </div>
 
           {/* Login Link */}
-           <div className="mt-6 text-center">
-             Already have an account?
+          <div className="mt-6 text-center">
+            <span className="text-gray-600">Already have an account? </span>
             <Link
               to="/login/doctor"
               className="text-green-600 hover:text-green-500 font-medium transition-colors duration-200"
             >
               Login here
             </Link>
-            </div>
-        </div>
+          </div>
+        </form>
 
         {/* Footer */}
         <div className="text-center mt-8">

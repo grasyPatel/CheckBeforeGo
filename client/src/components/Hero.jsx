@@ -3,7 +3,7 @@ import { Search, MapPin, Clock, Stethoscope, ArrowRight, CheckCircle } from 'luc
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-white dark:from-gray-900 dark:via-green-900 dark:to-gray-900 transition-all">
+    <section className="relative -mt-20 overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-white dark:from-gray-900 dark:via-green-900 dark:to-gray-900 transition-all">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-96 h-96 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
@@ -21,19 +21,18 @@ const Hero = () => {
         </div>
 
         {/* Main heading with enhanced styling */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold max-w-5xl leading-tight mb-6 bg-gradient-to-r from-green-800 via-emerald-700 to-green-600 bg-clip-text text-transparent animate-fade-in">
-          Check Doctor Availability in{' '}
-          <span className="relative">
-            Real-Time
-            <div className="absolute -bottom-2 left-0 right-0 h-3 bg-green-200 -rotate-1 -z-10"></div>
-          </span>{' '}
-          Before You Go
-        </h1>
-
+   <div className="flex justify-center px-4">
+  <h1 className="text-center text-3xl md:text-5xl lg:text-6xl font-bold max-w-5xl leading-snug mb-6 bg-gradient-to-r from-green-800 via-emerald-700 to-green-600 bg-clip-text text-transparent">
+    Check Doctor Availability in{' '}
+    <span className="inline-block font-semibold animate-pulse text-green-500">Real-Time</span>{' '}
+    Before You Go
+  </h1>
+</div>
         {/* Enhanced subtitle */}
-        <p className="text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl leading-relaxed">
-          Search for doctors near you by name, location, hospital, or specialization. Get real-time updates on availability and directions via Google Maps.
-        </p>
+         <p className="text-center text-sm md:text-xl lg:text-lg text-gray-700 dark:text-gray-300 mb-12 max-w-3xl leading-relaxed">
+    Search for doctors near you by name, location, hospital, or specialization.
+    Get real-time updates on availability and directions via Google Maps.
+  </p>
 
         {/* Feature highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
@@ -129,6 +130,8 @@ const DoctorList = () => {
         {/* Enhanced Doctor Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {doctors.map((doc) => (
+              <Link key={doc._id} to={`/doctors/${doc._id}`}>
+
             <div key={doc._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-green-100">
               {/* Card Header with Image */}
               <div className="relative bg-gradient-to-r from-green-400 to-emerald-500 p-6 text-white">
@@ -247,6 +250,8 @@ const DoctorList = () => {
                 </div>
               </div>
             </div>
+              </Link>
+
           ))}
         </div>
 
