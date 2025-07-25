@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useUser } from "../context/UserContext"; // Add this import
+import { useUser } from "../context/UserContext";
 
 import { useNavigate, Link } from "react-router-dom";
 
@@ -15,6 +15,11 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [updateLoading, setUpdateLoading] = useState(false);
+  // --- New State for Pagination ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const APPOINTMENTS_PER_PAGE = 4; // Consistent with backend limit
+
   const navigate = useNavigate();
   const { setUser } = useUser();
 
@@ -42,15 +47,39 @@ const UserDashboard = () => {
     }
   };
 
-  const fetchAppointments = async () => {
+  // --- Modified fetchAppointments to include pagination ---
+  const fetchAppointments = async (pageNumber = 1) => {
     try {
+      const userId =
+        user?._id ||
+        localStorage.getItem("userId") ||
+        JSON.parse(localStorage.getItem("user") || "{}")._id ||
+        JSON.parse(localStorage.getItem("user") || "{}").id;
+
+      console.log("Fetching appointments for User ID:", userId);
+
+      if (!userId) {
+        console.error("No user ID found for fetching appointments.");
+        return;
+      }
+
       const res = await axios.get(
-        `${API_BASE_URL}/api/appointments/my`,
+        `${API_BASE_URL}/api/appointments/user/${userId}?page=${pageNumber}&limit=${APPOINTMENTS_PER_PAGE}`, // Add pagination query params
         tokenHeader
       );
-      setAppointments(res.data);
+      console.log("User appointments response:", res.data); // Debug log
+      setAppointments(res.data.appointments); // Access appointments array from response
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
     } catch (err) {
-      console.error("Failed to fetch appointments:", err);
+      console.error(
+        "Failed to fetch user appointments:",
+        err.response?.data || err.message
+      );
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.error("Authentication issue for user appointments. Logging out.");
+        logout();
+      }
     }
   };
 
@@ -61,8 +90,18 @@ const UserDashboard = () => {
       return;
     }
     fetchUserProfile();
-    fetchAppointments();
-  }, []);
+    // Fetch initial appointments when component mounts
+    fetchAppointments(1); // Fetch the first page
+  }, []); // Empty dependency array means this runs once on mount
+
+  // --- Effect for user state change to refetch appointments ---
+  // If `user` is not available immediately but comes later, this ensures appointments are fetched.
+  // This helps when `userId` might not be available on first render in `fetchAppointments`.
+  useEffect(() => {
+    if (user && !appointments.length && !loading) { // Only fetch if user is set, no appointments, and not loading
+      fetchAppointments(1);
+    }
+  }, [user, loading]); // Depend on user and loading state
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -122,8 +161,6 @@ const UserDashboard = () => {
   };
 
   const handleCancelAppointment = async (appointmentId) => {
-    // IMPORTANT: Use a custom modal instead of window.confirm for better UI/UX
-    // For now, keeping window.confirm as per your existing code.
     if (!window.confirm("Are you sure you want to cancel this appointment?")) {
       return;
     }
@@ -133,9 +170,8 @@ const UserDashboard = () => {
         `${API_BASE_URL}/api/appointments/${appointmentId}`,
         tokenHeader
       );
-      setAppointments((prev) =>
-        prev.filter((appt) => appt._id !== appointmentId)
-      );
+      // After successful cancellation, refetch appointments for the current page
+      fetchAppointments(currentPage);
       // Optionally, show a success message
     } catch (err) {
       console.error("Error cancelling appointment:", err);
@@ -143,13 +179,21 @@ const UserDashboard = () => {
     }
   };
 
+  // --- Pagination Handlers ---
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      fetchAppointments(newPage);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
-    localStorage.removeItem("userId"); // Assuming you might store userId separately
-    localStorage.removeItem("user"); // Also remove the complete user object
-    setUser(null); // This updates the user context, which can trigger Navbar updates
-    navigate("/"); // Redirect to home or login page
+    localStorage.removeItem("userId");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
   };
 
   const getStatusBadge = (status) => {
@@ -166,7 +210,7 @@ const UserDashboard = () => {
     return (
       <span
         className={`px-2 py-1 rounded-full text-xs font-medium ${
-          statusStyles[status?.toLowerCase()] || statusStyles.pending // Use toLowerCase here too for consistency
+          statusStyles[status?.toLowerCase()] || statusStyles.pending
         }`}
       >
         {status?.charAt(0).toUpperCase() + status?.slice(1) || "Pending"}
@@ -189,7 +233,7 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {/* Header (unchanged) */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
@@ -226,7 +270,7 @@ const UserDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card */}
+          {/* Profile Card (unchanged) */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
               <div className="text-center">
@@ -310,7 +354,7 @@ const UserDashboard = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Edit Profile Modal */}
+            {/* Edit Profile Modal (unchanged) */}
             {editMode && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
@@ -480,7 +524,7 @@ const UserDashboard = () => {
                   </Link>
                 </div>
 
-                {appointments.length === 0 ? (
+                {appointments.length === 0 && !loading ? ( // Check !loading to avoid flashing "No appointments" during load
                   <div className="text-center py-12">
                     <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg
@@ -538,7 +582,8 @@ const UserDashboard = () => {
                               </div>
                               <div>
                                 <h4 className="font-semibold text-gray-900 dark:text-white">
-                                  Dr. {appt.doctorName ||
+                                  Dr.{" "}
+                                  {appt.doctorName ||
                                     appt.doctor?.name ||
                                     "Unknown Doctor"}
                                 </h4>
@@ -547,10 +592,10 @@ const UserDashboard = () => {
                                     appt.doctor?.specialty ||
                                     "General Medicine"}
                                 </p>
-                                {/* --- ADDED ISSUE HERE --- */}
                                 {appt.issue && (
                                   <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                                    <span className="font-medium">Issue:</span> {appt.issue}
+                                    <span className="font-medium">Issue:</span>{" "}
+                                    {appt.issue}
                                   </p>
                                 )}
                               </div>
@@ -607,8 +652,6 @@ const UserDashboard = () => {
                           </div>
                           <div className="flex items-center space-x-3">
                             {getStatusBadge(appt.status)}
-                            {/* Console log for debugging status (can be removed later) */}
-                            {console.log("Appointment ID:", appt._id, "Status:", appt.status, "Lowercase Status:", appt.status?.toLowerCase())}
                             {(appt.status?.toLowerCase() === "pending" ||
                               appt.status?.toLowerCase() === "confirmed") && (
                               <button
@@ -622,9 +665,20 @@ const UserDashboard = () => {
                             )}
                           </div>
                         </div>
-                        {/* --- NOTES VISIBILITY CHECK --- */}
-                        {/* The notes section will only be visible if appt.notes is a non-empty string. */}
-                        {appt.notes && appt.notes.trim() !== '' && (
+                        {/* --- Display Cancel Reason --- */}
+                        {appt.status?.toLowerCase() === "cancelled" &&
+                          appt.cancelReason &&
+                          appt.cancelReason.trim() !== "" && (
+                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-700">
+                              <p className="text-sm text-red-700 dark:text-red-300">
+                                <span className="font-medium">
+                                  Cancellation Reason:
+                                </span>{" "}
+                                {appt.cancelReason}
+                              </p>
+                            </div>
+                          )}
+                        {appt.notes && appt.notes.trim() !== "" && (
                           <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                             <p className="text-sm text-gray-700 dark:text-gray-300">
                               <span className="font-medium">Notes:</span>{" "}
@@ -634,6 +688,39 @@ const UserDashboard = () => {
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* --- Pagination Controls --- */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-8 space-x-2">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                    >
+                      Previous
+                    </button>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <button
+                        key={index + 1}
+                        onClick={() => handlePageChange(index + 1)}
+                        className={`px-4 py-2 rounded-lg font-medium transition duration-200 ${
+                          currentPage === index + 1
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                    >
+                      Next
+                    </button>
                   </div>
                 )}
               </div>

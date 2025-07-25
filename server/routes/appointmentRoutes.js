@@ -1,7 +1,13 @@
 // routes/appointmentRoutes.js
 import express from "express";
-import { cancelAppointment, createAppointment, getUserAppointments } from "../controllers/appointmentController.js";
-import { verifyUser } from "../middleware/authMiddleware.js";
+import { 
+  cancelAppointment, 
+  createAppointment, 
+  getUserAppointments, 
+  getDoctorAppointments, 
+  updateAppointmentStatusByDoctor 
+} from "../controllers/appointmentController.js";
+import { verifyUser, protectDoctor } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,8 +15,13 @@ const router = express.Router();
 router.post("/", verifyUser, createAppointment);
 
 // Get appointments for a logged-in user
-router.get("/:id", verifyUser, getUserAppointments);
+router.get("/user/:id", verifyUser, getUserAppointments);
 
-router.delete("/:id", verifyUser, cancelAppointment )
+// Cancel appointment by user
+router.delete("/:id", verifyUser, cancelAppointment);
+
+// Doctor-specific routes
+router.get('/doctor/:id', protectDoctor, getDoctorAppointments);
+router.put('/doctor/:id/status', protectDoctor, updateAppointmentStatusByDoctor);
 
 export default router;
