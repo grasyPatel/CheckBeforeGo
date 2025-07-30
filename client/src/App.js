@@ -1,6 +1,6 @@
 import Navbar from "./components/Navbar";
 import { ThemeProvider } from "./context/ThemeContext";
-import Hero from "./components/Hero"
+//import Hero from "./components/Hero"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DoctorList from "./pages/DoctorList";
 import UserLogin from "./pages/UserLogin";
@@ -12,6 +12,7 @@ import UserDashboard from "./pages/UserDashboard";
 import Footer from "./components/Footer";
 import DoctorDetails from "./pages/DoctorDetails";
 import BookAppointmentPage from "./pages/BookAppointmentPage";
+import Home from "./pages/Home";
 const App = () => {
   return (
    <ThemeProvider>
@@ -20,7 +21,7 @@ const App = () => {
           <Navbar />
         
           <Routes>
-            <Route path="/" element={<Hero />} />
+            <Route path="/" element={<Home />} />
             <Route path="/doctors" element={<DoctorList />} />
              <Route path="/login/user" element={<UserLogin />} />
             <Route path="/login/doctor" element={<DoctorLogin />} />

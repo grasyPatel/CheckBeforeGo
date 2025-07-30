@@ -19,10 +19,12 @@ import {
   MessageSquare,
   AlertCircle,
   FileText,
-  Plus,
+ 
+  X,
 } from "lucide-react";
 import axios from "axios";
 import { useUser } from "../context/UserContext";
+import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE_URL =
@@ -39,6 +41,7 @@ const DoctorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const { setUser } = useUser();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const tokenHeader = {
@@ -232,11 +235,11 @@ const DoctorDashboard = () => {
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
       case "confirmed":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-green-100 text-green-800 border-green-300";
       case "cancelled":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "bg-emerald-100/50 text-emerald-600 border-emerald-300/50";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
     }
@@ -244,10 +247,16 @@ const DoctorDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 flex items-center space-x-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          <span className="text-green-700 font-medium">
+      <div className={`min-h-screen flex items-center justify-center ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-emerald-50 to-green-100'
+      }`}>
+        <div className={`rounded-2xl shadow-xl p-8 flex items-center space-x-4 border ${
+          theme === 'dark' 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-emerald-100'
+        }`}>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+          <span className="text-emerald-700 font-medium">
             Loading your dashboard...
           </span>
         </div>
@@ -256,26 +265,41 @@ const DoctorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+    <div className={`min-h-screen transition-all duration-500 ${
+      theme === 'dark' ? 'bg-gray-900' : 'bg-gradient-to-br from-emerald-50 to-green-100'
+    }`}>
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-green-100">
+      <div className={`backdrop-blur-sm shadow-lg border-b transition-all duration-300 ${
+        theme === 'dark' 
+          ? 'bg-gray-800/80 border-gray-700' 
+          : 'bg-white/80 border-emerald-100'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-600 rounded-full p-2">
-                <Stethoscope className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="bg-gradient-to-r from-emerald-600 to-green-600 rounded-xl p-3 shadow-lg">
+                <Stethoscope className="h-7 w-7 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-green-800">
-                Welcome, {doctor?.name || "Doctor"}
-              </h1>
+              <div>
+                <h1 className={`text-2xl font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-emerald-900'
+                }`}>
+                  Welcome, {doctor?.name || "Doctor"}
+                </h1>
+                <p className="text-sm text-emerald-600">
+                  {doctor?.specialty}
+                </p>
+              </div>
             </div>
-            <button
-              onClick={logout}
-              className="flex items-center space-x-2 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={logout}
+                className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-5 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -284,8 +308,12 @@ const DoctorDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Card */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-green-100">
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+            <div className={`rounded-2xl shadow-xl overflow-hidden border transition-all duration-300 ${
+              theme === 'dark' 
+                ? 'bg-gray-800 border-gray-700' 
+                : 'bg-white border-emerald-100'
+            }`}>
+              <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-6">
                 <h2 className="text-xl font-semibold text-white">
                   Profile Overview
                 </h2>
@@ -295,54 +323,68 @@ const DoctorDashboard = () => {
                 <div className="text-center mb-6">
                   <div className="relative inline-block">
                     <img
-                      src={doctor?.profileImage || "/default-doctor.jpg"}
+                      src={doctor?.profileImage || "/api/placeholder/100/100"}
                       alt="Profile"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-green-100"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-emerald-100 shadow-lg"
                     />
                     <div
-                      className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white ${
-                        doctor?.availability ? "bg-green-500" : "bg-red-500"
+                      className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-3 border-white shadow-lg ${
+                        doctor?.availability ? "bg-emerald-500" : "bg-red-500"
                       }`}
                     ></div>
                   </div>
-                  <h3 className="mt-4 text-xl font-semibold text-gray-900">
-                    Dr. {doctor?.name}
+                  <h3 className={`mt-4 text-xl font-semibold ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                     {doctor?.name}
                   </h3>
-                  <p className="text-green-600 font-medium">
+                  <p className="text-emerald-600 font-medium">
                     {doctor?.specialty}
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <Mail className="h-5 w-5 text-green-600" />
+                  <div className={`flex items-center space-x-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <Mail className="h-5 w-5 text-emerald-600" />
                     <span className="text-sm">{doctor?.email}</span>
                   </div>
 
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <Hospital className="h-5 w-5 text-green-600" />
+                  <div className={`flex items-center space-x-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <Hospital className="h-5 w-5 text-emerald-600" />
                     <span className="text-sm">{doctor?.hospitalName}</span>
                   </div>
 
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <MapPin className="h-5 w-5 text-green-600" />
+                  <div className={`flex items-center space-x-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <MapPin className="h-5 w-5 text-emerald-600" />
                     <span className="text-sm">{doctor?.location}</span>
                   </div>
 
-                  <div className="flex items-center space-x-3 text-gray-700">
-                    <Clock className="h-5 w-5 text-green-600" />
+                  <div className={`flex items-center space-x-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <Clock className="h-5 w-5 text-emerald-600" />
                     <span className="text-sm">{doctor?.timings}</span>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-100">
+                <div className={`mt-6 pt-6 border-t ${
+                  theme === 'dark' ? 'border-gray-700' : 'border-gray-100'
+                }`}>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Availability Status
                     </span>
                     <div
                       className={`flex items-center space-x-2 ${
-                        doctor?.availability ? "text-green-600" : "text-red-600"
+                        doctor?.availability ? "text-emerald-600" : "text-red-500"
                       }`}
                     >
                       {doctor?.availability ? (
@@ -359,10 +401,10 @@ const DoctorDashboard = () => {
                   <div className="space-y-3">
                     <button
                       onClick={toggleAvailability}
-                      className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                      className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl ${
                         doctor?.availability
                           ? "bg-red-100 hover:bg-red-200 text-red-700"
-                          : "bg-green-100 hover:bg-green-200 text-green-700"
+                          : "bg-emerald-100 hover:bg-emerald-200 text-emerald-700"
                       }`}
                     >
                       <Power className="h-4 w-4" />
@@ -374,7 +416,7 @@ const DoctorDashboard = () => {
 
                     <button
                       onClick={() => setEditMode(true)}
-                      className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                      className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-4 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                       <Edit3 className="h-4 w-4" />
                       <span>Edit Profile</span>
@@ -383,34 +425,46 @@ const DoctorDashboard = () => {
                 </div>
 
                 {/* Appointment Statistics */}
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                <div className={`mt-6 pt-6 border-t ${
+                  theme === 'dark' ? 'border-gray-700' : 'border-gray-100'
+                }`}>
+                  <h4 className={`text-sm font-medium mb-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Appointment Statistics
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-blue-700">
+                    <div className={`rounded-xl p-4 text-center shadow-lg ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-emerald-50'
+                    }`}>
+                      <div className="text-lg font-bold text-emerald-600">
                         {appointmentCounts.total}
                       </div>
-                      <div className="text-xs text-blue-600">Total</div>
+                      <div className="text-xs text-emerald-600">Total</div>
                     </div>
-                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-yellow-700">
+                    <div className={`rounded-xl p-4 text-center shadow-lg ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-emerald-50'
+                    }`}>
+                      <div className="text-lg font-bold text-emerald-600">
                         {appointmentCounts.pending}
                       </div>
-                      <div className="text-xs text-yellow-600">Pending</div>
+                      <div className="text-xs text-emerald-600">Pending</div>
                     </div>
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-green-700">
+                    <div className={`rounded-xl p-4 text-center shadow-lg ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-green-50'
+                    }`}>
+                      <div className="text-lg font-bold text-green-600">
                         {appointmentCounts.confirmed}
                       </div>
                       <div className="text-xs text-green-600">Confirmed</div>
                     </div>
-                    <div className="bg-red-50 rounded-lg p-3 text-center">
-                      <div className="text-lg font-bold text-red-700">
+                    <div className={`rounded-xl p-4 text-center shadow-lg ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-emerald-50'
+                    }`}>
+                      <div className="text-lg font-bold text-emerald-600">
                         {appointmentCounts.cancelled}
                       </div>
-                      <div className="text-xs text-red-600">Cancelled</div>
+                      <div className="text-xs text-emerald-600">Cancelled</div>
                     </div>
                   </div>
                 </div>
@@ -422,8 +476,12 @@ const DoctorDashboard = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Edit Profile Form */}
             {editMode && (
-              <div className="bg-white rounded-xl shadow-lg border border-green-100">
-                <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+              <div className={`rounded-2xl shadow-xl border transition-all duration-300 ${
+                theme === 'dark' 
+                  ? 'bg-gray-800 border-gray-700' 
+                  : 'bg-white border-emerald-100'
+              }`}>
+                <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-6">
                   <h2 className="text-xl font-semibold text-white">
                     Edit Profile
                   </h2>
@@ -432,7 +490,9 @@ const DoctorDashboard = () => {
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Name
                       </label>
                       <input
@@ -442,12 +502,18 @@ const DoctorDashboard = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, name: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Email
                       </label>
                       <input
@@ -457,12 +523,18 @@ const DoctorDashboard = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, email: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Specialty
                       </label>
                       <input
@@ -475,12 +547,18 @@ const DoctorDashboard = () => {
                             specialty: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Hospital Name
                       </label>
                       <input
@@ -493,12 +571,18 @@ const DoctorDashboard = () => {
                             hospitalName: e.target.value,
                           })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Location
                       </label>
                       <input
@@ -508,12 +592,18 @@ const DoctorDashboard = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, location: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium mb-2 ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
                         Timings
                       </label>
                       <input
@@ -523,13 +613,19 @@ const DoctorDashboard = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, timings: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        }`}
                       />
                     </div>
                   </div>
 
                   <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Profile Image URL
                     </label>
                     <input
@@ -542,20 +638,28 @@ const DoctorDashboard = () => {
                           profileImage: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300'
+                      }`}
                     />
                   </div>
 
                   <div className="flex space-x-4 mt-8">
                     <button
                       onClick={handleUpdate}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                      className="flex-1 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                       Save Changes
                     </button>
                     <button
                       onClick={() => setEditMode(false)}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+                      className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      }`}
                     >
                       Cancel
                     </button>
@@ -565,8 +669,12 @@ const DoctorDashboard = () => {
             )}
 
             {/* Enhanced Appointments Section */}
-            <div className="bg-white rounded-xl shadow-lg border border-green-100">
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+            <div className={`rounded-2xl shadow-xl border transition-all duration-300 ${
+              theme === 'dark' 
+                ? 'bg-gray-800 border-gray-700' 
+                : 'bg-white border-emerald-100'
+            }`}>
+              <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-6 w-6 text-white" />
@@ -591,7 +699,11 @@ const DoctorDashboard = () => {
                       placeholder="Search by patient name, email, or issue..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300'
+                      }`}
                     />
                   </div>
                   <div className="flex items-center space-x-2">
@@ -599,7 +711,11 @@ const DoctorDashboard = () => {
                     <select
                       value={appointmentFilter}
                       onChange={(e) => setAppointmentFilter(e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`px-3 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300'
+                      }`}
                     >
                       <option value="all">All Status</option>
                       <option value="pending">Pending</option>
@@ -610,21 +726,25 @@ const DoctorDashboard = () => {
                 </div>
 
                 {filteredAppointments.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 text-green-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">
+                  <div className="text-center py-12">
+                    <Calendar className="h-16 w-16 text-emerald-300 mx-auto mb-4" />
+                    <p className={`text-lg mb-2 ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       {searchTerm || appointmentFilter !== "all"
                         ? "No appointments match your search criteria"
                         : "No appointments scheduled"}
                     </p>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <p className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    }`}>
                       {searchTerm || appointmentFilter !== "all"
                         ? "Try adjusting your search or filter settings"
                         : "Your upcoming appointments will appear here"}
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {filteredAppointments.map((appt) => {
                       const { date, time } = formatDateTime(
                         appt.appointmentDate
@@ -632,19 +752,27 @@ const DoctorDashboard = () => {
                       return (
                         <div
                           key={appt._id}
-                          className="border border-green-100 rounded-lg p-6 hover:shadow-md transition-all duration-200 bg-gray-50"
+                          className={`border rounded-2xl p-6 hover:shadow-lg transition-all duration-300 ${
+                            theme === 'dark'
+                              ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
+                              : 'bg-emerald-50/50 border-emerald-200 hover:bg-emerald-50'
+                          }`}
                         >
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex-1">
                               <div className="flex items-center space-x-3 mb-3">
-                                <div className="bg-green-100 rounded-full p-2">
-                                  <User className="h-5 w-5 text-green-600" />
+                                <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-full p-2 shadow-lg">
+                                  <User className="h-5 w-5 text-white" />
                                 </div>
                                 <div>
-                                  <h3 className="font-semibold text-gray-900 text-lg">
+                                  <h3 className={`font-semibold text-lg ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                  }`}>
                                     {appt.user?.name || "Patient Name"}
                                   </h3>
-                                  <p className="text-sm text-gray-500">
+                                  <p className={`text-sm ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                  }`}>
                                     {appt.user?.email || "patient@email.com"}
                                   </p>
                                 </div>
@@ -664,24 +792,32 @@ const DoctorDashboard = () => {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                              <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
-                                <Calendar className="h-4 w-4 text-green-600" />
+                              <div className={`flex items-center space-x-2 text-sm mb-2 ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                              }`}>
+                                <Calendar className="h-4 w-4 text-emerald-600" />
                                 <span className="font-medium">Date:</span>
                                 <span>{date}</span>
                               </div>
-                              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <Clock className="h-4 w-4 text-green-600" />
+                              <div className={`flex items-center space-x-2 text-sm ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                              }`}>
+                                <Clock className="h-4 w-4 text-emerald-600" />
                                 <span className="font-medium">Time:</span>
                                 <span>{time}</span>
                               </div>
                             </div>
 
                             <div>
-                              <div className="flex items-start space-x-2 text-sm text-gray-600">
-                                <FileText className="h-4 w-4 text-green-600 mt-0.5" />
+                              <div className={`flex items-start space-x-2 text-sm ${
+                                theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                              }`}>
+                                <FileText className="h-4 w-4 text-emerald-600 mt-0.5" />
                                 <div>
                                   <span className="font-medium">Issue:</span>
-                                  <p className="text-gray-800 mt-1">
+                                  <p className={`mt-1 ${
+                                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                                  }`}>
                                     {appt.issue}
                                   </p>
                                 </div>
@@ -690,14 +826,22 @@ const DoctorDashboard = () => {
                           </div>
 
                           {appt.status === "Cancelled" && appt.cancelReason && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className={`mb-4 p-4 border rounded-xl ${
+                              theme === 'dark'
+                                ? 'bg-red-900/20 border-red-700'
+                                : 'bg-red-50 border-red-200'
+                            }`}>
                               <div className="flex items-start space-x-2">
                                 <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
                                 <div>
-                                  <span className="text-sm font-medium text-red-800">
+                                  <span className={`text-sm font-medium ${
+                                    theme === 'dark' ? 'text-red-300' : 'text-red-800'
+                                  }`}>
                                     Cancellation Reason:
                                   </span>
-                                  <p className="text-sm text-red-700 mt-1">
+                                  <p className={`text-sm mt-1 ${
+                                    theme === 'dark' ? 'text-red-400' : 'text-red-700'
+                                  }`}>
                                     {appt.cancelReason}
                                   </p>
                                 </div>
@@ -705,13 +849,15 @@ const DoctorDashboard = () => {
                             </div>
                           )}
 
-                          <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                          <div className={`flex flex-wrap gap-2 pt-4 border-t ${
+                            theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
+                          }`}>
                             <button
                               onClick={() => {
                                 setSelectedAppointment(appt);
                                 setShowAppointmentDetails(true);
                               }}
-                              className="flex items-center space-x-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200"
+                              className="flex items-center space-x-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                             >
                               <Eye className="h-4 w-4" />
                               <span>View Details</span>
@@ -726,7 +872,7 @@ const DoctorDashboard = () => {
                                       "Confirmed"
                                     )
                                   }
-                                  className="flex items-center space-x-1 bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200"
+                                  className="flex items-center space-x-1 bg-green-100 hover:bg-green-200 text-green-700 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                                 >
                                   <CheckCircle className="h-4 w-4" />
                                   <span>Confirm</span>
@@ -744,7 +890,7 @@ const DoctorDashboard = () => {
                                       );
                                     }
                                   }}
-                                  className="flex items-center space-x-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200"
+                                  className="flex items-center space-x-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                                 >
                                   <XCircle className="h-4 w-4" />
                                   <span>Cancel</span>
@@ -753,13 +899,17 @@ const DoctorDashboard = () => {
                             )}
 
                             {appt.user?.phone && (
-                              <button className="flex items-center space-x-1 bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200">
+                              <button className="flex items-center space-x-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
                                 <Phone className="h-4 w-4" />
                                 <span>Call</span>
                               </button>
                             )}
 
-                            <button className="flex items-center space-x-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200">
+                            <button className={`flex items-center space-x-1 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl ${
+                              theme === 'dark'
+                                ? 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            }`}>
                               <MessageSquare className="h-4 w-4" />
                               <span>Message</span>
                             </button>
@@ -777,9 +927,11 @@ const DoctorDashboard = () => {
 
       {/* Appointment Details Modal */}
       {showAppointmentDetails && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className={`rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-semibold text-white">
                   Appointment Details
@@ -789,9 +941,9 @@ const DoctorDashboard = () => {
                     setShowAppointmentDetails(false);
                     setSelectedAppointment(null);
                   }}
-                  className="text-white hover:text-gray-200 transition-colors"
+                  className="text-white hover:text-gray-200 transition-colors p-1 rounded-lg hover:bg-white/10"
                 >
-                  <XCircle className="h-6 w-6" />
+                  <X className="h-6 w-6" />
                 </button>
               </div>
             </div>
@@ -799,41 +951,53 @@ const DoctorDashboard = () => {
             <div className="p-6">
               <div className="space-y-6">
                 {/* Patient Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <User className="h-5 w-5 text-green-600 mr-2" />
+                <div className={`rounded-xl p-4 ${
+                  theme === 'dark' ? 'bg-gray-700/50' : 'bg-emerald-50/50'
+                }`}>
+                  <h4 className={`font-semibold mb-3 flex items-center ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    <User className="h-5 w-5 text-emerald-600 mr-2" />
                     Patient Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Name:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {selectedAppointment.user?.name || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Email:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {selectedAppointment.user?.email || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Phone:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {selectedAppointment.user?.phone || "N/A"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Age:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {selectedAppointment.user?.age || "N/A"}
                       </p>
                     </div>
@@ -841,17 +1005,23 @@ const DoctorDashboard = () => {
                 </div>
 
                 {/* Appointment Information */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                <div className={`rounded-xl p-4 ${
+                  theme === 'dark' ? 'bg-gray-700/50' : 'bg-green-50/50'
+                }`}>
+                  <h4 className={`font-semibold mb-3 flex items-center ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    <Calendar className="h-5 w-5 text-green-600 mr-2" />
                     Appointment Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Date:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {
                           formatDateTime(selectedAppointment.appointmentDate)
                             .date
@@ -859,10 +1029,12 @@ const DoctorDashboard = () => {
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Time:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {
                           formatDateTime(selectedAppointment.appointmentDate)
                             .time
@@ -870,7 +1042,9 @@ const DoctorDashboard = () => {
                       </p>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Status:
                       </span>
                       <span
@@ -882,10 +1056,12 @@ const DoctorDashboard = () => {
                       </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-600">
+                      <span className={`text-sm font-medium ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
                         Booking Date:
                       </span>
-                      <p className="text-gray-900">
+                      <p className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
                         {new Date(
                           selectedAppointment.createdAt
                         ).toLocaleDateString()}
@@ -895,16 +1071,26 @@ const DoctorDashboard = () => {
                 </div>
 
                 {/* Medical Information */}
-                <div className="bg-yellow-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <FileText className="h-5 w-5 text-yellow-600 mr-2" />
+                <div className={`rounded-xl p-4 ${
+                  theme === 'dark' ? 'bg-gray-700/50' : 'bg-emerald-50/50'
+                }`}>
+                  <h4 className={`font-semibold mb-3 flex items-center ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    <FileText className="h-5 w-5 text-emerald-600 mr-2" />
                     Medical Information
                   </h4>
                   <div>
-                    <span className="text-sm font-medium text-gray-600">
+                    <span className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
                       Patient's Issue/Concern:
                     </span>
-                    <p className="text-gray-900 mt-2 bg-white rounded p-3 border">
+                    <p className={`mt-2 rounded-xl p-3 border ${
+                      theme === 'dark'
+                        ? 'text-gray-200 bg-gray-600 border-gray-600'
+                        : 'text-gray-900 bg-white border-gray-200'
+                    }`}>
                       {selectedAppointment.issue}
                     </p>
                   </div>
@@ -912,16 +1098,28 @@ const DoctorDashboard = () => {
 
                 {selectedAppointment.status === "Cancelled" &&
                   selectedAppointment.cancelReason && (
-                    <div className="bg-red-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <div className={`border rounded-xl p-4 ${
+                      theme === 'dark'
+                        ? 'bg-red-900/20 border-red-700'
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <h4 className={`font-semibold mb-3 flex items-center ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                      }`}>
                         <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
                         Cancellation Information
                       </h4>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">
+                        <span className={`text-sm font-medium ${
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           Cancellation Reason:
                         </span>
-                        <p className="text-gray-900 mt-2 bg-white rounded p-3 border">
+                        <p className={`mt-2 rounded-xl p-3 border ${
+                          theme === 'dark'
+                            ? 'text-gray-200 bg-gray-600 border-gray-600'
+                            : 'text-gray-900 bg-white border-gray-200'
+                        }`}>
                           {selectedAppointment.cancelReason}
                         </p>
                       </div>
@@ -929,7 +1127,9 @@ const DoctorDashboard = () => {
                   )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
+                <div className={`flex flex-wrap gap-3 pt-6 border-t ${
+                  theme === 'dark' ? 'border-gray-600' : 'border-gray-200'
+                }`}>
                   {selectedAppointment.status === "Pending" && (
                     <>
                       <button
@@ -939,7 +1139,7 @@ const DoctorDashboard = () => {
                             "Confirmed"
                           )
                         }
-                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                        className="flex items-center space-x-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                       >
                         <CheckCircle className="h-4 w-4" />
                         <span>Confirm Appointment</span>
@@ -957,7 +1157,7 @@ const DoctorDashboard = () => {
                             );
                           }
                         }}
-                        className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                        className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                       >
                         <XCircle className="h-4 w-4" />
                         <span>Cancel Appointment</span>
@@ -969,7 +1169,7 @@ const DoctorDashboard = () => {
                     onClick={() =>
                       window.open(`mailto:${selectedAppointment.user?.email}`)
                     }
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                    className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                   >
                     <Mail className="h-4 w-4" />
                     <span>Send Email</span>
@@ -980,14 +1180,18 @@ const DoctorDashboard = () => {
                       onClick={() =>
                         window.open(`tel:${selectedAppointment.user.phone}`)
                       }
-                      className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+                      className="flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                       <Phone className="h-4 w-4" />
                       <span>Call Patient</span>
                     </button>
                   )}
 
-                  <button className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                  <button className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl ${
+                    theme === 'dark'
+                      ? 'bg-gray-600 hover:bg-gray-500 text-white'
+                      : 'bg-gray-600 hover:bg-gray-700 text-white'
+                  }`}>
                     <MessageSquare className="h-4 w-4" />
                     <span>Send Message</span>
                   </button>

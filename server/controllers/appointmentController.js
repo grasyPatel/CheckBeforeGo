@@ -110,10 +110,7 @@
 import Appointment from "../models/Appointment.js";
 
 export const createAppointment = async (req, res) => {
-  console.log("Incoming appointment request:", {
-    body: req.body,
-    user: req.user,
-  });
+ 
 
   try {
     const { doctorId, issue, appointmentDate } = req.body;

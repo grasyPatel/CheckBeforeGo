@@ -1,11 +1,30 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useUser } from "../context/UserContext";
-
+import { useTheme } from "../context/ThemeContext";
 import { useNavigate, Link } from "react-router-dom";
+import { 
+  Calendar, 
+  Clock, 
+  User, 
+  Phone, 
+  Mail, 
+  Edit3, 
+  LogOut, 
+  Plus, 
+  X, 
+  CheckCircle, 
+  AlertCircle, 
+  XCircle, 
+  Clock4,
+  ChevronLeft,
+  ChevronRight,
+  Stethoscope,
+  MapPin,
+  FileText
+} from "lucide-react";
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 const UserDashboard = () => {
   const [user, setUsers] = useState(null);
@@ -15,13 +34,13 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [updateLoading, setUpdateLoading] = useState(false);
-  // --- New State for Pagination ---
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const APPOINTMENTS_PER_PAGE = 4; // Consistent with backend limit
+  const APPOINTMENTS_PER_PAGE = 4;
 
   const navigate = useNavigate();
   const { setUser } = useUser();
+  const { theme } = useTheme();
 
   const tokenHeader = {
     headers: {
@@ -31,10 +50,7 @@ const UserDashboard = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const res = await axios.get(
-        `${API_BASE_URL}/api/users/profile`,
-        tokenHeader
-      );
+      const res = await axios.get(`${API_BASE_URL}/api/users/profile`, tokenHeader);
       setUsers(res.data);
       setFormData(res.data);
     } catch (err) {
@@ -47,16 +63,11 @@ const UserDashboard = () => {
     }
   };
 
-  // --- Modified fetchAppointments to include pagination ---
   const fetchAppointments = async (pageNumber = 1) => {
     try {
-      const userId =
-        user?._id ||
-        localStorage.getItem("userId") ||
+      const userId = user?._id || localStorage.getItem("userId") || 
         JSON.parse(localStorage.getItem("user") || "{}")._id ||
         JSON.parse(localStorage.getItem("user") || "{}").id;
-
-      console.log("Fetching appointments for User ID:", userId);
 
       if (!userId) {
         console.error("No user ID found for fetching appointments.");
@@ -64,20 +75,15 @@ const UserDashboard = () => {
       }
 
       const res = await axios.get(
-        `${API_BASE_URL}/api/appointments/user/${userId}?page=${pageNumber}&limit=${APPOINTMENTS_PER_PAGE}`, // Add pagination query params
+        `${API_BASE_URL}/api/appointments/user/${userId}?page=${pageNumber}&limit=${APPOINTMENTS_PER_PAGE}`,
         tokenHeader
       );
-      console.log("User appointments response:", res.data); // Debug log
-      setAppointments(res.data.appointments); // Access appointments array from response
+      setAppointments(res.data.appointments);
       setCurrentPage(res.data.currentPage);
       setTotalPages(res.data.totalPages);
     } catch (err) {
-      console.error(
-        "Failed to fetch user appointments:",
-        err.response?.data || err.message
-      );
+      console.error("Failed to fetch user appointments:", err.response?.data || err.message);
       if (err.response?.status === 401 || err.response?.status === 403) {
-        console.error("Authentication issue for user appointments. Logging out.");
         logout();
       }
     }
@@ -90,30 +96,20 @@ const UserDashboard = () => {
       return;
     }
     fetchUserProfile();
-    // Fetch initial appointments when component mounts
-    fetchAppointments(1); // Fetch the first page
-  }, []); // Empty dependency array means this runs once on mount
+    fetchAppointments(1);
+  }, []);
 
-  // --- Effect for user state change to refetch appointments ---
-  // If `user` is not available immediately but comes later, this ensures appointments are fetched.
-  // This helps when `userId` might not be available on first render in `fetchAppointments`.
   useEffect(() => {
-    if (user && !appointments.length && !loading) { // Only fetch if user is set, no appointments, and not loading
+    if (user && !appointments.length && !loading) {
       fetchAppointments(1);
     }
-  }, [user, loading]); // Depend on user and loading state
+  }, [user, loading]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -125,10 +121,7 @@ const UserDashboard = () => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    if (
-      formData.phone &&
-      !/^\d{10,}$/.test(formData.phone.replace(/\D/g, ""))
-    ) {
+    if (formData.phone && !/^\d{10,}$/.test(formData.phone.replace(/\D/g, ""))) {
       newErrors.phone = "Phone number must be at least 10 digits";
     }
     return newErrors;
@@ -144,11 +137,7 @@ const UserDashboard = () => {
 
     setUpdateLoading(true);
     try {
-      const res = await axios.put(
-        `${API_BASE_URL}/api/users/profile`,
-        formData,
-        tokenHeader
-      );
+      const res = await axios.put(`${API_BASE_URL}/api/users/profile`, formData, tokenHeader);
       setUsers(res.data.user || res.data);
       setEditMode(false);
       setErrors({});
@@ -166,20 +155,14 @@ const UserDashboard = () => {
     }
 
     try {
-      await axios.delete(
-        `${API_BASE_URL}/api/appointments/${appointmentId}`,
-        tokenHeader
-      );
-      // After successful cancellation, refetch appointments for the current page
+      await axios.delete(`${API_BASE_URL}/api/appointments/${appointmentId}`, tokenHeader);
       fetchAppointments(currentPage);
-      // Optionally, show a success message
     } catch (err) {
       console.error("Error cancelling appointment:", err);
       alert("Failed to cancel appointment. Please try again.");
     }
   };
 
-  // --- Pagination Handlers ---
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -196,35 +179,57 @@ const UserDashboard = () => {
     navigate("/");
   };
 
+  const getStatusIcon = (status) => {
+    switch (status?.toLowerCase()) {
+      case "confirmed":
+        return <CheckCircle className="w-3 h-3 text-green-600" />;
+      case "pending":
+        return <Clock4 className="w-3 h-3 text-yellow-600" />;
+      case "cancelled":
+        return <XCircle className="w-3 h-3 text-red-600" />;
+      case "completed":
+        return <CheckCircle className="w-3 h-3 text-green-700" />;
+      default:
+        return <AlertCircle className="w-3 h-3 text-gray-500" />;
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusStyles = {
-      pending:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-      confirmed:
-        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-      cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-      completed:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      confirmed: "bg-green-100 text-green-800 border-green-300",
+      cancelled: "bg-red-100 text-red-800 border-red-300",
+      completed: "bg-green-50 text-green-700 border-green-200",
     };
 
     return (
-      <span
-        className={`px-2 py-1 rounded-full text-xs font-medium ${
-          statusStyles[status?.toLowerCase()] || statusStyles.pending
-        }`}
-      >
-        {status?.charAt(0).toUpperCase() + status?.slice(1) || "Pending"}
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+        statusStyles[status?.toLowerCase()] || statusStyles.pending
+      }`}>
+        {getStatusIcon(status)}
+        <span className="ml-1">
+          {status?.charAt(0).toUpperCase() + status?.slice(1) || "Pending"}
+        </span>
       </span>
     );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+      }`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Loading your dashboard...
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-green-200 rounded-full animate-spin border-t-green-600 mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Stethoscope className="w-6 h-6 text-green-600 animate-pulse" />
+            </div>
+          </div>
+          <p className={`mt-4 text-sm font-medium ${
+            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            Loading dashboard...
           </p>
         </div>
       </div>
@@ -232,327 +237,177 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Header (unchanged) */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Welcome back, {user?.name}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Manage your health appointments and profile
-              </p>
+    <div className={`min-h-screen ${
+      theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
+      {/* Header */}
+      <div className={`backdrop-blur-lg border-b sticky top-0 z-40 ${
+        theme === 'dark' 
+          ? 'bg-gray-900/95 border-gray-700' 
+          : 'bg-white/95 border-gray-200'
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center shadow-sm">
+                <User className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  Welcome, {user?.name?.split(' ')[0] || 'User'}
+                </h1>
+                <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Manage your appointments and profile
+                </p>
+              </div>
             </div>
             <button
               onClick={logout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200 flex items-center"
+              className="flex items-center space-x-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-              Logout
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Card (unchanged) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Profile Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-              <div className="text-center">
-                <div className="relative inline-block">
-                  <img
-                    src={
-                      user?.profileImage ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                        user?.name || "User"
-                      )}&background=16a34a&color=fff&size=120`
-                    }
-                    alt="Profile"
-                    className="w-20 h-20 rounded-full mx-auto object-cover border-4 border-green-500"
-                  />
-                  <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                </div>
-                <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
-                  {user?.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {user?.email}
-                </p>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center text-gray-600 dark:text-gray-400">
-                  <svg
-                    className="w-5 h-5 mr-3 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+            <div className={`rounded-lg shadow-sm border ${
+              theme === 'dark' 
+                ? 'bg-gray-800 border-gray-700' 
+                : 'bg-white border-gray-200'
+            }`}>
+             
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="text-center">
+                  <div className="relative inline-block">
+                    <img
+                      src={user?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=16a34a&color=fff&size=80`}
+                      alt="Profile"
+                      className="w-16 h-16 rounded-lg mx-auto object-cover shadow-sm border-2 border-gray-200 dark:border-gray-600"
                     />
-                  </svg>
-                  <span>{user?.email}</span>
-                </div>
-                <div className="flex items-center text-gray-600 dark:text-gray-400">
-                  <svg
-                    className="w-5 h-5 mr-3 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                    />
-                  </svg>
-                  <span>{user?.phone || "No phone added"}</span>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                  <h3 className={`mt-3 text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    {user?.name}
+                  </h3>
                 </div>
               </div>
 
-              <button
-                onClick={() => setEditMode(true)}
-                className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition duration-200 flex items-center justify-center"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* Profile Details */}
+              <div className="p-4 space-y-3">
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                  <Mail className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} truncate`}>
+                    {user?.email}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                  <Phone className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {user?.phone || "No phone added"}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+                  <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {user?.address || "No address added"}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2 shadow-sm"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                Edit Profile
-              </button>
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Profile</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className={`p-3 rounded-lg shadow-sm ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+              }`}>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-600">{appointments.length}</div>
+                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Total
+                  </div>
+                </div>
+              </div>
+              <div className={`p-3 rounded-lg shadow-sm ${
+                theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+              }`}>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-600">
+                    {appointments.filter(a => a.status?.toLowerCase() === 'confirmed').length}
+                  </div>
+                  <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Confirmed
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Edit Profile Modal (unchanged) */}
-            {editMode && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                        Edit Profile
-                      </h3>
-                      <button
-                        onClick={() => {
-                          setEditMode(false);
-                          setErrors({});
-                        }}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        <svg
-                          className="w-6 h-6"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
+          <div className="lg:col-span-3">
+            <div className={`rounded-lg shadow-sm border ${
+              theme === 'dark' 
+                ? 'bg-gray-800 border-gray-700' 
+                : 'bg-white border-gray-200'
+            }`}>
+              <div className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-white" />
                     </div>
-
-                    {errors.general && (
-                      <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg text-sm">
-                        {errors.general}
-                      </div>
-                    )}
-
-                    <form onSubmit={handleUpdate} className="space-y-4">
-                      <div>
-                        <input
-                          type="text"
-                          name="name"
-                          placeholder="Full Name"
-                          className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                            errors.name ? "border-red-500" : "border-gray-300"
-                          }`}
-                          value={formData.name || ""}
-                          onChange={handleInputChange}
-                        />
-                        {errors.name && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.name}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="Email Address"
-                          className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                            errors.email ? "border-red-500" : "border-gray-300"
-                          }`}
-                          value={formData.email || ""}
-                          onChange={handleInputChange}
-                        />
-                        {errors.email && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.email}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <input
-                          type="tel"
-                          name="phone"
-                          placeholder="Phone Number"
-                          className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                            errors.phone ? "border-red-500" : "border-gray-300"
-                          }`}
-                          value={formData.phone || ""}
-                          onChange={handleInputChange}
-                        />
-                        {errors.phone && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.phone}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <input
-                          type="url"
-                          name="profileImage"
-                          placeholder="Profile Image URL (Optional)"
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          value={formData.profileImage || ""}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-
-                      <div className="flex space-x-3 pt-4">
-                        <button
-                          type="submit"
-                          disabled={updateLoading}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
-                        >
-                          {updateLoading ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditMode(false);
-                            setErrors({});
-                          }}
-                          className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition duration-200"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
+                    <div>
+                      <h2 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        My Appointments
+                      </h2>
+                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Manage your scheduled appointments
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* Appointments Section */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                    <svg
-                      className="w-6 h-6 mr-2 text-green-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v5a2 2 0 002 2h4a2 2 0 002-2v-5m-6 4H8m8 0v-4m0 4h-8m8-4V8a2 2 0 00-2-2H10a2 2 0 00-2 2v8"
-                      />
-                    </svg>
-                    My Appointments
-                  </h2>
                   <Link
                     to="/doctors"
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200 flex items-center"
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
                   >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    Book New Appointment
+                    <Plus className="w-4 h-4" />
+                    <span>Book New</span>
                   </Link>
                 </div>
 
-                {appointments.length === 0 && !loading ? ( // Check !loading to avoid flashing "No appointments" during load
+                {appointments.length === 0 && !loading ? (
                   <div className="text-center py-12">
-                    <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg
-                        className="w-12 h-12 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v5a2 2 0 002 2h4a2 2 0 002-2v-5m-6 4H8m8 0v-4m0 4h-8m8-4V8a2 2 0 00-2-2H10a2 2 0 00-2 2v8"
-                        />
-                      </svg>
+                    <div className={`w-20 h-20 rounded-lg flex items-center justify-center mx-auto mb-4 ${
+                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                    }`}>
+                      <Calendar className={`w-10 h-10 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`} />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    <h3 className={`text-base font-semibold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                       No appointments yet
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Start by booking your first appointment with one of our
-                      qualified doctors.
+                    <p className={`text-sm mb-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Start by booking your first appointment with one of our qualified doctors.
                     </p>
                     <Link
                       to="/doctors"
-                      className="inline-flex items-center bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200"
+                      className="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm"
                     >
-                      Browse Doctors
+                      <Stethoscope className="w-4 h-4" />
+                      <span>Browse Doctors</span>
                     </Link>
                   </div>
                 ) : (
@@ -560,130 +415,114 @@ const UserDashboard = () => {
                     {appointments.map((appt) => (
                       <div
                         key={appt._id}
-                        className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200"
+                        className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                          theme === 'dark' 
+                            ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
+                            : 'bg-gray-50 border-gray-200 hover:bg-white hover:border-green-200'
+                        }`}
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center mb-2">
-                              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mr-3">
-                                <svg
-                                  className="w-5 h-5 text-green-600 dark:text-green-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
-                                </svg>
+                            <div className="flex items-start space-x-3 mb-3">
+                              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Stethoscope className="w-5 h-5 text-white" />
                               </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-900 dark:text-white">
-                                  Dr.{" "}
-                                  {appt.doctorName ||
-                                    appt.doctor?.name ||
-                                    "Unknown Doctor"}
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`text-sm font-semibold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                                  Dr. {appt.doctorName || appt.doctor?.name || "Unknown Doctor"}
                                 </h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {appt.specialty ||
-                                    appt.doctor?.specialty ||
-                                    "General Medicine"}
+                                <p className="text-green-600 text-xs font-medium mb-1">
+                                  {appt.specialty || appt.doctor?.specialty || "General Medicine"}
                                 </p>
                                 {appt.issue && (
-                                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                                    <span className="font-medium">Issue:</span>{" "}
-                                    {appt.issue}
-                                  </p>
+                                  <div className="flex items-start space-x-2 mt-2">
+                                    <FileText className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                    <p className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} line-clamp-2`}>
+                                      {appt.issue}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                              <div className="flex items-center text-gray-600 dark:text-gray-400">
-                                <svg
-                                  className="w-4 h-4 mr-2 text-green-500"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4v5a2 2 0 002 2h4a2 2 0 002-2v-5m-6 4H8m8 0v-4m0 4h-8m8-4V8a2 2 0 00-2-2H10a2 2 0 00-2 2v8"
-                                  />
-                                </svg>
-                                <span>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-4 h-4 text-green-600" />
+                                <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {appt.appointmentDate
-                                    ? new Date(
-                                        appt.appointmentDate
-                                      ).toLocaleDateString()
+                                    ? new Date(appt.appointmentDate).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })
                                     : "Invalid Date"}
                                 </span>
                               </div>
-                              <div className="flex items-center text-gray-600 dark:text-gray-400">
-                                <svg
-                                  className="w-4 h-4 mr-2 text-green-500"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
-                                </svg>
-                                <span>
+                              <div className="flex items-center space-x-2">
+                                <Clock className="w-4 h-4 text-green-600" />
+                                <span className={`text-xs font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                                   {appt.appointmentDate
-                                    ? new Date(
-                                        appt.appointmentDate
-                                      ).toLocaleTimeString([], {
+                                    ? new Date(appt.appointmentDate).toLocaleTimeString([], {
                                         hour: "2-digit",
                                         minute: "2-digit",
                                       })
                                     : "Invalid Time"}
-                                </span>{" "}
+                                </span>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-3">
+
+                          <div className="flex items-center space-x-3 flex-shrink-0">
                             {getStatusBadge(appt.status)}
                             {(appt.status?.toLowerCase() === "pending" ||
                               appt.status?.toLowerCase() === "confirmed") && (
                               <button
-                                onClick={() =>
-                                  handleCancelAppointment(appt._id)
-                                }
-                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium text-sm transition duration-200"
+                                onClick={() => handleCancelAppointment(appt._id)}
+                                className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors duration-200 border border-red-200 hover:border-red-300"
                               >
                                 Cancel
                               </button>
                             )}
                           </div>
                         </div>
-                        {/* --- Display Cancel Reason --- */}
-                        {appt.status?.toLowerCase() === "cancelled" &&
-                          appt.cancelReason &&
-                          appt.cancelReason.trim() !== "" && (
-                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-700">
-                              <p className="text-sm text-red-700 dark:text-red-300">
-                                <span className="font-medium">
+
+                        {/* Cancel Reason */}
+                        {appt.status?.toLowerCase() === "cancelled" && appt.cancelReason && (
+                          <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
+                            <div className="flex items-start space-x-2">
+                              <AlertCircle className="w-3 h-3 text-red-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-xs font-medium text-red-700 dark:text-red-300 mb-1">
                                   Cancellation Reason:
-                                </span>{" "}
-                                {appt.cancelReason}
-                              </p>
+                                </p>
+                                <p className="text-xs text-red-600 dark:text-red-400">
+                                  {appt.cancelReason}
+                                </p>
+                              </div>
                             </div>
-                          )}
+                          </div>
+                        )}
+
+                        {/* Notes */}
                         {appt.notes && appt.notes.trim() !== "" && (
-                          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-                            <p className="text-sm text-gray-700 dark:text-gray-300">
-                              <span className="font-medium">Notes:</span>{" "}
-                              {appt.notes}
-                            </p>
+                          <div className={`mt-3 p-3 rounded-lg ${
+                            theme === 'dark' ? 'bg-gray-600/50' : 'bg-green-50'
+                          }`}>
+                            <div className="flex items-start space-x-2">
+                              <FileText className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className={`text-xs font-medium mb-1 ${
+                                  theme === 'dark' ? 'text-green-300' : 'text-green-700'
+                                }`}>
+                                  Notes:
+                                </p>
+                                <p className={`text-xs ${
+                                  theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                  {appt.notes}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -691,35 +530,55 @@ const UserDashboard = () => {
                   </div>
                 )}
 
-                {/* --- Pagination Controls --- */}
+                {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center mt-8 space-x-2">
+                  <div className="flex justify-center items-center mt-8 space-x-2">
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                        currentPage === 1
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : theme === 'dark'
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                      }`}
                     >
-                      Previous
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Previous</span>
                     </button>
-                    {[...Array(totalPages)].map((_, index) => (
-                      <button
-                        key={index + 1}
-                        onClick={() => handlePageChange(index + 1)}
-                        className={`px-4 py-2 rounded-lg font-medium transition duration-200 ${
-                          currentPage === index + 1
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                        }`}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
+
+                    <div className="flex space-x-1">
+                      {[...Array(totalPages)].map((_, index) => (
+                        <button
+                          key={index + 1}
+                          onClick={() => handlePageChange(index + 1)}
+                          className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+                            currentPage === index + 1
+                              ? 'bg-green-600 text-white shadow-sm'
+                              : theme === 'dark'
+                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                          }`}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                      className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                        currentPage === totalPages
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : theme === 'dark'
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                      }`}
                     >
-                      Next
+                      <span>Next</span>
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 )}
@@ -728,6 +587,214 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {editMode && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+                    <Edit3 className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                    Edit Profile
+                  </h3>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditMode(false);
+                    setErrors({});
+                  }}
+                  className={`p-2 rounded-lg transition-colors ${
+                    theme === 'dark' 
+                      ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700' 
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {errors.general && (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-600 text-red-700 dark:text-red-400 rounded-lg text-sm flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{errors.general}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div className="space-y-1">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Enter your full name"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all duration-200 ${
+                        errors.name 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : theme === 'dark'
+                          ? "border-gray-600 bg-gray-700 text-white"
+                          : "border-gray-300 bg-white"
+                      }`}
+                      value={formData.name || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  {errors.name && (
+                    <p className="text-red-500 text-xs flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.name}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Enter your email"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all duration-200 ${
+                        errors.email 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : theme === 'dark'
+                          ? "border-gray-600 bg-gray-700 text-white"
+                          : "border-gray-300 bg-white"
+                      }`}
+                      value={formData.email || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-xs flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.email}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Enter your phone number"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all duration-200 ${
+                        errors.phone 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : theme === 'dark'
+                          ? "border-gray-600 bg-gray-700 text-white"
+                          : "border-gray-300 bg-white"
+                      }`}
+                      value={formData.phone || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="text-red-500 text-xs flex items-center space-x-1">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.phone}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Address
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="address"
+                      placeholder="Enter your address"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all duration-200 ${
+                        theme === 'dark'
+                        ? "border-gray-600 bg-gray-700 text-white"
+                        : "border-gray-300 bg-white"
+                      }`}
+                      value={formData.address || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Profile Image URL (Optional)
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="url"
+                      name="profileImage"
+                      placeholder="https://example.com/image.jpg"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm transition-all duration-200 ${
+                        theme === 'dark'
+                        ? "border-gray-600 bg-gray-700 text-white"
+                        : "border-gray-300 bg-white"
+                      }`}
+                      value={formData.profileImage || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={updateLoading}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2 shadow-sm"
+                  >
+                    {updateLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Save Changes</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMode(false);
+                      setErrors({});
+                    }}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2 ${
+                      theme === 'dark'
+                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
