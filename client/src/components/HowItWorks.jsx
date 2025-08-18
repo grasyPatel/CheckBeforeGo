@@ -371,7 +371,7 @@ const navigate = useNavigate();
       </div>
 
       {/* NEW & Enhanced CSS Animations */}
-      <style jsx>{`
+      <style jsx="true">{`
         /* Custom Easing Functions */
         .ease-out-quad { transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); }
         .ease-out-expo { transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }

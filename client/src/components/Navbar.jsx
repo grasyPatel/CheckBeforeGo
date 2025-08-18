@@ -367,7 +367,7 @@ const Navbar = () => {
       </div>
 
       {/* Custom Styles */}
-      <style jsx>{`
+      <style jsx="true">{`
         @keyframes slideIn {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }

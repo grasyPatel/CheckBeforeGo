@@ -54,29 +54,26 @@ const UserRegister = () => {
 
   const handleRegister = async () => {
     if (!validateForm()) return;
-
     setLoading(true);
     try {
       const { confirmPassword, ...registerData } = formData;
-
-      const response = await axios.post(
-        `${API_BASE_URL}/api/users/register`,
-        registerData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 10000, // 10 second timeout
+      const formDataToSend = new FormData();
+      Object.entries(registerData).forEach(([key, value]) => {
+        if (key === "profileImage" && value instanceof File) {
+          formDataToSend.append("profileImage", value);
+        } else if (key !== "profileImage") {
+          formDataToSend.append(key, value);
         }
-      );
+      });
 
-      alert("Registration successful! Please login.");
-      navigate("/login/user");
-
+      await axios.post(`${API_BASE_URL}/api/users/register`, formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 10000,
+      });
       alert("Registration successful! Please login.");
       navigate("/login/user");
     } catch (err) {
-    alert(err.response?.data?.message || "Registration failed.");
+      alert(err.response?.data?.message || "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -110,6 +107,8 @@ const UserRegister = () => {
           </p>
         </div>
 
+        <form onSubmit={e => { e.preventDefault(); handleRegister(); }}>
+
         {/* Two-Column Registration Form */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
@@ -133,6 +132,7 @@ const UserRegister = () => {
                       id="name"
                       name="name"
                       type="text"
+                      autoComplete="name"
                       placeholder="Enter your full name"
                       className={`w-full px-4 py-4 border-2 ${
                         errors.name ? "border-red-300" : "border-gray-200"
@@ -175,6 +175,7 @@ const UserRegister = () => {
                       id="email"
                       name="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="Enter your email"
                       className={`w-full px-4 py-4 border-2 ${
                         errors.email ? "border-red-300" : "border-gray-200"
@@ -216,6 +217,7 @@ const UserRegister = () => {
                     <input
                       id="phone"
                       name="phone"
+                      autoComplete="tel"
                       type="tel"
                       placeholder="Enter your phone number"
                       className={`w-full px-4 py-4 border-2 ${
@@ -268,15 +270,20 @@ const UserRegister = () => {
                     <input
                       id="profileImage"
                       name="profileImage"
-                      type="url"
+                      type="file"
+                      accept="image/*"
                       placeholder="Enter profile image URL"
                       className={`w-full px-4 py-4 border-2 ${
                         errors.profileImage
                           ? "border-red-300"
                           : "border-gray-200"
                       } rounded-xl focus:border-green-400 focus:outline-none transition-colors duration-200 pl-12 text-sm bg-white`}
-                      value={formData.profileImage}
-                      onChange={handleInputChange}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          profileImage: e.target.files[0],
+                        }))
+                      }
                     />
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg
@@ -313,6 +320,7 @@ const UserRegister = () => {
                     <input
                       id="password"
                       name="password"
+                      autoComplete="new-password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       className={`w-full px-4 py-4 border-2 ${
@@ -398,6 +406,7 @@ const UserRegister = () => {
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
+                      autoComplete="new-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
                       className={`w-full px-4 py-4 border-2 ${
@@ -482,8 +491,8 @@ const UserRegister = () => {
           <div className="px-8 lg:px-12 pb-8 lg:pb-12 bg-white">
             {/* Submit Button */}
             <button
-              type="button"
-              onClick={handleRegister}
+              type="submit"
+             
               disabled={loading}
               className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg shadow-lg"
             >
@@ -516,6 +525,10 @@ const UserRegister = () => {
               )}
             </button>
 
+        
+
+            
+
             {/* Login Link */}
             <div className="mt-8 text-center">
               <span className="text-gray-600">Already have an account? </span>
@@ -527,7 +540,9 @@ const UserRegister = () => {
               </a>
             </div>
           </div>
+          
         </div>
+        </form>
       </div>
     </div>
   );

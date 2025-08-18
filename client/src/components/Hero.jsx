@@ -209,7 +209,7 @@ const Hero = () => {
      
 
       {/* Enhanced CSS Animations */}
-      <style jsx>{`
+      <style jsx="true">{`
         .bg-grid-pattern {
           background-image: linear-gradient(to right, rgba(34, 197, 94, 0.05) 1px, transparent 1px),
                             linear-gradient(to bottom, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
