@@ -4,6 +4,8 @@ A comprehensive web application built with the MERN stack that connects patients
 
 ![Project Status](https://img.shields.io/badge/status-in%20development-yellow)
 ![MERN Stack](https://img.shields.io/badge/stack-MERN-blue)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-blue)](https://checkbeforegohelp.onrender.com/)
+
 
 ## 📋 Table of Contents
 
